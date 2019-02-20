@@ -1,0 +1,41 @@
+name: irfanview
+version: latest
+version-script: cat $SNAPCRAFT_STAGE/version
+summary: IrfanView is a compact and lightweight image viewer.
+description: |
+ IrfanView is a fast and simple freeware image viewer, editor and converter that supports all major graphic formats that can open, edit, or convert most common image formats including AIF, DJVU, GIF, ICO, JPG, PNG, PSD, RAW, TGA, TIF...etc. and can be further extended via plug-ins that are widely available. Use it to quickly browse through a directory of pictures, convert images from one format to another, crop, rotate, optimize an image, create a slideshow and even view movies or play audio files (MP3, AVI, audio CDs, and WMA). IrfanView features include drag & drop support, directory viewing, TWAIN support, batch conversion, image editing, Photoshop filters support, paint options, image modifications such as color depth, crop, blur, sharpen, image resizing, cropping and more.
+
+confinement: strict
+grade: stable
+architectures:
+  - build-on: amd64
+  - build-on: i386
+
+plugs:
+  wine-platform-plug:
+    content: wine-base-stable
+    interface: content
+    target: $SNAP/wine-platform
+    default-provider: wine-platform
+
+apps:
+  irfanview:
+    command: irfanview
+    desktop: usr/share/applications/irfanview.desktop
+    plugs: [ wayland, x11, opengl, home, desktop, desktop-legacy, network, hardware-observe, process-control, cups-control, removable-media, wine-platform-plug ]
+
+parts:
+  irfanview:
+    plugin: nil
+    source: ./src
+    override-build: |
+      snapcraftctl build
+      set -ex
+      ver=$(wget https://www.irfanview.com -q -S -O - 2>&1 | grep 'Version' | sed 's|</| |' | awk '{print $2}')
+      echo $ver > $SNAPCRAFT_STAGE/version
+      ./dl_ifv
+    stage:
+      - bin
+      - usr
+      - wine-platform
+    build-packages: [wget]

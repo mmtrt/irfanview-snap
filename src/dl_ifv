@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+#
+# Author:
+#   mmtrt [Taqi Raza]
+#
+# Description:
+#   download and prepare irfanview for snap
+#
+# Date: Feb 19 2019
+#
+
+dlifv () {
+    ver=$(wget https://www.irfanview.com -q -S -O - 2>&1 | grep 'Version' | sed 's|</| |' | awk '{print $2}')
+    dver=$(wget https://www.irfanview.com -q -S -O - 2>&1 | grep 'Version' | sed 's|</| |;s/\.//g' | awk '{print $2}')
+    if [ "${ARCHITECTURE}" = "amd64" ]; then
+     wget https://www.irfanview.net/64bit.htm -q -S -O - 2>&1 | grep checksum | sed 's|)| |g' | awk '{print $5}' | head -n1 > hash64 && t=$(mktemp) &&
+     wget http://ftp.elf.stuba.sk/packages/pub/pc/graph/iviex${dver}.exe -qO "$t" && 
+        if sha256sum "$t" | grep -Eo '^\w+' | cmp -s hash64 
+         then
+          7z x "$t" -x'!i_about.txt' -x'!i_changes.txt' -x'!i_languages.txt' -x'!i_options.txt' -x'!i_plugins.txt' -x'!#readme_zip_users.txt' -x'!i_view32.chm' -x'!iv_uninstall.exe' -o"usr/share/irfanview"
+            rm hash64
+         else
+          echo "Error download file hash mismatch"
+        fi
+    elif [ "${ARCHITECTURE}" = "i386" ]; then
+     wget https://www.irfanview.net/main_download_engl.htm -q -S -O - 2>&1 | grep iview452_setup.exe | sed 's|</| |g' | awk '{print $3}' > hash32 && t=$(mktemp) && wget http://ftp.elf.stuba.sk/packages/pub/pc/graph/iview${dver}.exe -qO "$t" && 
+        if sha256sum "$t" | grep -Eo '^\w+' | cmp -s hash32 
+         then
+          7z x "$t" -x'!i_about.txt' -x'!i_changes.txt' -x'!i_languages.txt' -x'!i_options.txt' -x'!i_plugins.txt' -x'!#readme_zip_users.txt' -x'!i_view32.chm' -x'!iv_uninstall.exe'  -o"usr/share/irfanview"
+            rm hash32
+         else
+          echo "Error download file hash mismatch"
+        fi
+     rm "$t"
+    else
+     echo "ERROR! irfanview only produces software for amd64 and i386. Failing the build here."
+     exit 1
+    fi
+}
+
+dli7z16 () {
+    ARCHITECTURE=$(dpkg --print-architecture)
+    if [ "${ARCHITECTURE}" = "amd64" ]; then
+    debs="https://launchpad.net/ubuntu/+source/p7zip/16.02+dfsg-4/+build/13091326/+files/p7zip_16.02+dfsg-4_amd64.deb https://launchpad.net/ubuntu/+source/p7zip/16.02+dfsg-4/+build/13091326/+files/p7zip-full_16.02+dfsg-4_amd64.deb"
+    debsi="p7zip_16.02+dfsg-4_amd64.deb p7zip-full_16.02+dfsg-4_amd64.deb"
+    elif [ "${ARCHITECTURE}" = "i386" ]; then
+    debs="https://launchpad.net/ubuntu/+source/p7zip/16.02+dfsg-4/+build/13091329/+files/p7zip_16.02+dfsg-4_i386.deb https://launchpad.net/ubuntu/+source/p7zip/16.02+dfsg-4/+build/13091329/+files/p7zip-full_16.02+dfsg-4_i386.deb"
+    debsi="p7zip_16.02+dfsg-4_i386.deb p7zip-full_16.02+dfsg-4_i386.deb"
+    else
+     echo "ERROR! No amd64 or i386 system found. Failing the build here."
+     exit 1
+    fi
+
+    for dldebs in $debs
+    do
+    wget $dldebs &> /dev/null
+    done
+
+    for pkgdebins in $debsi
+    do
+    sudo apt install ./$pkgdebins -y &> /dev/null
+    rm $pkgdebins
+    done
+}
+
+mkifv () {
+    appdir="usr/share/irfanview"
+    mkdir ./{wine-platform,bin} && mkdir -p usr/share/{pixmaps,applications}
+    if [ "${ARCHITECTURE}" = "amd64" ]; then
+    mv $appdir/i_view64.exe $appdir/irfanview.exe
+    sed -i -e 's|Version=|Version='"$ver"'|g;s|Icon=|Icon=${SNAP}/usr/share/pixmaps/irfanview64.png|g' irfanview.desktop
+    mv irfanview64.png usr/share/pixmaps
+    elif [ "${ARCHITECTURE}" = "i386" ]; then
+    mv $appdir/i_view32.exe $appdir/irfanview.exe
+    sed -i -e 's|Version=|Version='"$ver"'|g;s|Icon=|Icon=${SNAP}/usr/share/pixmaps/irfanview32.png|g' irfanview.desktop
+    mv irfanview32.png usr/share/pixmaps
+    fi
+    find "usr" -type d -execdir chmod 755 {} +
+}
+
+mkdsk () {
+cat > irfanview.desktop <<'EOF1'
+[Desktop Entry]
+Name=IrfanView
+GenericName=Image Viewer
+Comment=One of the Most Popular Viewers Worldwide.
+Encoding=UTF-8
+Version=
+Type=Application
+Terminal=false
+Icon=
+Exec=irfanview %F
+StartupWMClass=irfanview.exe
+Categories=Graphics;Viewer;Photography;
+MimeType=inode/directory;image/gif;image/jpeg;image/png;image/bmp;image/x-eps;image/x-icns;image/x-ico;image/x-portable-bitmap;image/x-portable-graymap;image/x-portable-pixmap;image/x-xbitmap;image/x-xpixmap;image/tiff;image/x-psd;image/x-webp;image/webp;image/x-tga;
+EOF1
+}
+
+dli7z16
+dlifv
+mkdsk
+mkifv
+
+mv irfanview bin && mv irfanview.desktop usr/share/applications && cp -R -p {bin,usr,wine-platform} $SNAPCRAFT_PART_INSTALL
