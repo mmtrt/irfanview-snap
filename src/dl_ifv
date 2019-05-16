@@ -23,7 +23,7 @@ dlifv () {
           echo "Error download file hash mismatch"
         fi
     elif [ "${ARCHITECTURE}" = "i386" ]; then
-     wget https://www.irfanview.net/main_download_engl.htm -q -S -O - 2>&1 | grep iview452_setup.exe | sed 's|</| |g' | awk '{print $3}' > hash32 && t=$(mktemp) && wget http://ftp.elf.stuba.sk/packages/pub/pc/graph/iview${dver}.exe -qO "$t" && 
+     wget https://www.irfanview.net/main_download_engl.htm -q -S -O - 2>&1 | grep iview${dver}_setup.exe | sed 's|</| |g' | awk '{print $3}' > hash32 && t=$(mktemp) && wget http://ftp.elf.stuba.sk/packages/pub/pc/graph/iview${dver}.exe -qO "$t" && 
         if sha256sum "$t" | grep -Eo '^\w+' | cmp -s hash32 
          then
           7z x "$t" -x'!i_about.txt' -x'!i_changes.txt' -x'!i_languages.txt' -x'!i_options.txt' -x'!i_plugins.txt' -x'!#readme_zip_users.txt' -x'!i_view32.chm' -x'!iv_uninstall.exe'  -o"usr/share/irfanview"
