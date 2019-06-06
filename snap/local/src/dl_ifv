@@ -65,7 +65,7 @@ dli7z16 () {
 
 mkifv () {
     appdir="usr/share/irfanview"
-    mkdir ./{wine-platform,bin} && mkdir -p usr/share/{pixmaps,applications}
+    mkdir ./{wine-runtime,wine-platform,bin} && mkdir -p usr/share/{pixmaps,applications}
     if [ "${ARCHITECTURE}" = "amd64" ]; then
     mv $appdir/i_view64.exe $appdir/irfanview.exe
     sed -i -e 's|Version=|Version='"$ver"'|g;s|Icon=|Icon=${SNAP}/usr/share/pixmaps/irfanview64.png|g' irfanview.desktop
@@ -101,4 +101,4 @@ dlifv
 mkdsk
 mkifv
 
-mv irfanview bin && mv irfanview.desktop usr/share/applications && cp -R -p {bin,usr,wine-platform} $SNAPCRAFT_PART_INSTALL
+mv irfanview bin && mv irfanview.desktop usr/share/applications && cp -R -p {bin,usr,wine-runtime,wine-platform} $SNAPCRAFT_PART_INSTALL
