@@ -101,4 +101,4 @@ dlifv
 mkdsk
 mkifv
 
-mv irfanview bin && mv irfanview.desktop usr/share/applications && cp -R -p {bin,usr,wine-runtime,wine-platform} $SNAPCRAFT_PART_INSTALL
+mv pre-install sommelier/hooks && mv irfanview.desktop usr/share/applications && cp -R -p {sommelier,bin,usr,wine-runtime,wine-platform} $SNAPCRAFT_PART_INSTALL
