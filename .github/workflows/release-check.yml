@@ -10,6 +10,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PAT }}
     - name: get-latest-version
       run: |
         VERSION="$(wget 2>/dev/null https://www.irfanview.com -qSO- | grep 'Version' | sed 's|</| |' | awk '{print $2}')"
