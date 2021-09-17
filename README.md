@@ -10,6 +10,7 @@ distributions.</p>
 ## Install
 
     snap install irfanview
+    snap connect irfanview:removable-media
 
 ([Don't have snapd installed?](https://snapcraft.io/docs/core/install))
 
