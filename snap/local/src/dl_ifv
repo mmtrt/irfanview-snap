@@ -13,7 +13,7 @@ dlifv () {
     ver=$(wget https://www.irfanview.com -q -S -O - 2>&1 | grep 'Version' | sed 's|</| |' | awk '{print $2}')
     dver=$(wget https://www.irfanview.com -q -S -O - 2>&1 | grep 'Version' | sed 's|</| |;s/\.//g' | awk '{print $2}')
     if [ "${ARCHITECTURE}" = "amd64" ]; then
-     wget https://www.irfanview.net/64bit.htm -q -S -O - 2>&1 | grep checksum | sed 's|)| |g' | awk '{print $5}' | head -n1 > hash64 && t=$(mktemp) &&
+     wget https://www.irfanview.net/64bit.htm -q -S -O - 2>&1 | grep -Eo checksum.* | sed 's|)| |g' | awk '{print $2}' | head -n1 > hash64 && t=$(mktemp) &&
      wget http://ftp.elf.stuba.sk/packages/pub/pc/graph/iviex${dver}.exe -qO "$t" && 
         if sha256sum "$t" | grep -Eo '^\w+' | cmp -s hash64 
          then
