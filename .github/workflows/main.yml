@@ -26,6 +26,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: snapcore/action-build@v1
         id: build
+        with:
+          snapcraft-channel: 7.x/stable
 
       - uses: snapcore/action-publish@v1
         env:
